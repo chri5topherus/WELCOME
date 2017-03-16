@@ -1,0 +1,9 @@
+[Welcome] 
+nameCount=5
+font=1
+fontColor=#d41212
+fontSize=140
+nameMode=2
+delay=1
+
+; This is a comment
