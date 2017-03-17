@@ -1,9 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.UI;
 using System.IO;
 using System;
@@ -14,40 +11,52 @@ using System.Text.RegularExpressions;
 public class MainController : MonoBehaviour {
 
 
-	//debug text
+	//DEBUG TEXT
 	public Text debugText;
 
-	//path of backdrop
-	private string absolutePath;
-	//private string absolutePathTarget;
-	private string absolutePathOfApp;
-	private FileInfo[] files;
-	private DirectoryInfo info;
+	//BACKDROP
 	public Image backdropImg;
 
 	//INI parser
 	INIParser ini = new INIParser();
 
+	//TEXT CANVAS
+	public Canvas textCanvas;
+	public List<GameObject> listWithCreatedNamed = new List<GameObject> ();
+	private Rect screenSizeRect;
+
+	//SETTINGS
 	private int nameCount;
 	private int font;
 	private string fontColorString;
 	private Color fontColor;
 	private int fontSize;
 	private int delay;
-
-	public Text mainText;
-
 	private int nameMode;
+	private int animationMode;
+	private int animationDuration;
 
-	private String testFirstname = "Chris";
-	private String testLastname = "Bösch";
-	private String testName = "";
+	//MAIN TEXT OBJECT
+	private Text mainText;
+	public Text mainTextOpenSansBold;
+	public Text mainTextOpenSansLight;
+	public Text mainTextPressStart2P;
+	public Text mainTextLewis;
+
+
+
+
+	//TESTING
+	private String[,] names = new String[,] { { "Chris", "Boesch" }, { "Michael", "Mair" }, { "Andrea", "Hagen" }, { "Tim", "Turbo"} };
+	private int currentNameCounter = 0;
+
 
 
 	// Use this for initialization
 	void Start () {
 
-		absolutePathOfApp = Application.dataPath;
+		string absolutePathOfApp = Application.dataPath;
+		string absolutePath = "";
 
 		if (Application.isEditor) {
 			absolutePath = absolutePathOfApp + "/Resources/Settings";
@@ -69,43 +78,96 @@ public class MainController : MonoBehaviour {
 				//absolutePathTarget = ini.ReadValue("Path","wintarget","test");
 			#endif
 
-
-
 		}
 
 		debugText.text = absolutePath;
 
+
+		//----------------------------
+		//------------ INI -----------
+		//----------------------------
 		ini.Open(absolutePath + "/settings.txt");
 		nameCount = Int32.Parse(ini.ReadValue("Welcome","nameCount", "1"));
 		font = Int32.Parse(ini.ReadValue("Welcome","font", "1"));
-		fontSize = Int32.Parse(ini.ReadValue ("Welcome", "fontSize", "24"));
+		fontSize = Int32.Parse(ini.ReadValue ("Welcome", "fontSize", "100"));
 		fontColorString = ini.ReadValue ("Welcome", "fontColor", "1");
 		nameMode = Int32.Parse(ini.ReadValue ("Welcome", "nameMode", "1"));
+		animationMode = Int32.Parse(ini.ReadValue ("Welcome", "animationMode", "1"));
+		animationDuration = Int32.Parse(ini.ReadValue ("Welcome", "animationDuration", "1"));
 		delay = Int32.Parse(ini.ReadValue ("Welcome", "delay", "1"));
-
 		ini.Close ();
-		setBackdrop ();
 
-		setNameMode (nameMode);
+		//----------------------------
+		//--------- BACKDROP ---------
+		//----------------------------
+		setBackdrop (absolutePath);
 
+		//----------------------------
+		//----------- FONT -----------
+		//----------------------------
+		setFont ();
+
+		//----------------------------
+		//----------- COLOR ----------
+		//----------------------------
 		ColorUtility.TryParseHtmlString (fontColorString, out fontColor);
 		mainText.color = fontColor;
 
+		//----------------------------
+		//----------- SIZE -----------
+		//----------------------------
 		mainText.fontSize = fontSize;
+		RectTransform rectTransform = mainText.GetComponent (typeof (RectTransform)) as RectTransform;
+		rectTransform.sizeDelta = new Vector2 (Screen.width, Screen.height);
 
-		mainText.transform.localPosition = new Vector3(0F,Screen.height/2+100, 0F);
-		StartCoroutine(startAnimation ());
+		//----------------------------
+		//------- CLEAR SCREEN -------
+		//----------------------------
+		mainText.transform.localPosition = new Vector3(0F,Screen.height, 0F);
 
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		
+		if (Input.GetKeyDown (KeyCode.Space)) { 
+			generateNewName ();
+		}
 	}
 
-	private void setBackdrop() { 
-		info = new DirectoryInfo (absolutePath);
-		files = info.GetFiles ();
+	private void setFont() {
+		switch (font) {
+		case 1:
+			mainText = mainTextOpenSansBold;
+			mainTextOpenSansLight.gameObject.SetActive (false);
+			mainTextPressStart2P.gameObject.SetActive (false);
+			mainTextLewis.gameObject.SetActive (false);
+			break; 
+		case 2: 
+			mainText = mainTextOpenSansLight;
+			mainTextOpenSansBold.gameObject.SetActive (false);
+			mainTextPressStart2P.gameObject.SetActive (false);
+			mainTextLewis.gameObject.SetActive (false);
+			break; 
+		case 3: 
+			mainText = mainTextPressStart2P;
+			mainTextOpenSansLight.gameObject.SetActive (false);
+			mainTextOpenSansBold.gameObject.SetActive (false);
+			mainTextLewis.gameObject.SetActive (false);
+			break; 
+		case 4: 
+			mainText = mainTextLewis;
+			mainTextOpenSansLight.gameObject.SetActive (false);
+			mainTextOpenSansBold.gameObject.SetActive (false);
+			mainTextPressStart2P.gameObject.SetActive (false);
+			break; 
+
+		}
+
+	}
+
+	private void setBackdrop(string absolutePath) { 
+		DirectoryInfo info = new DirectoryInfo (absolutePath);
+		FileInfo[] files = info.GetFiles ();
 
 		foreach (FileInfo f in files) {
 			if (validFileType (f.Name)) {
@@ -123,30 +185,76 @@ public class MainController : MonoBehaviour {
 		return false;
 	}
 
-		
-	private IEnumerator startAnimation() {
-		yield return new WaitForSeconds (delay);
 
-		iTween.MoveTo(mainText.gameObject,iTween.Hash(
-			"position",new Vector3(0F,0F,0F),
-			"easetype",iTween.EaseType.easeOutQuart,
-			"time",3F));
-	}
-
-	private void setNameMode(int nameMode) { 
-
+	private String getNameString(int currentName) { 
+		String createdName = "";
 		switch (nameMode) {
 		case 1:
-			testName = testFirstname + " " + testLastname;
+			createdName = names[currentName,0] + " " + names[currentName,1];
 			break;
 		case 2: 
-			testName = testFirstname.Substring (0, 1) + ". " + testLastname;
+			createdName = names[currentName,0].Substring (0, 1) + ". " + names[currentName,1];
 			break; 
 		case 3:
-			testName = testFirstname + " " + testLastname.Substring (0, 1) + ".";
+			createdName = names[currentName,0] + " " + names[currentName,1].Substring (0, 1) + ".";
 			break;
 		}
-			mainText.text = testName;
+		return createdName;
+	}
+
+
+	private void generateNewName() {
+		GameObject newName = Instantiate (mainText.gameObject,textCanvas.transform);
+		listWithCreatedNamed.Add (newName);
+		newName.GetComponent<Text> ().text = getNameString (currentNameCounter);
+		StartCoroutine (IN (newName));
+		currentNameCounter++;
+	}
+
+
+	private IEnumerator IN(GameObject go) {
+		yield return new WaitForSeconds (delay); 
+
+		switch (animationMode) {
+		case 1:
+			iTween.MoveTo(go,iTween.Hash(
+				"position",new Vector3(0F,0F,0F),
+				"easetype",iTween.EaseType.easeOutQuart,
+				"time",animationDuration));
+			break; 
+		case 2:
+			go.transform.localScale = new Vector3 (0.6F, 0.6F, 0.6F);
+			iTween.ScaleTo (go, iTween.Hash ("" +
+				"scale", new Vector3 (1F, 1F, 1F),
+				"easetype", iTween.EaseType.easeOutExpo,
+				"time", animationDuration));
+			go.GetComponent<Text> ().CrossFadeAlpha (0F, 0F, false);
+			go.transform.localPosition = new Vector3(0F,0F, 0F);
+			go.GetComponent<Text> ().CrossFadeAlpha (1F, animationDuration, false);
+			break; 
+
+
+		case 3: 
+			break;
+
+		}
+
+
+
+	
+
+	}
+
+	private IEnumerator STAY() {
+		yield return new WaitForSeconds (0F); 
+
+	}
+
+
+
+	private IEnumerator OUT() {
+		yield return new WaitForSeconds (0F); 
+
 	}
 
 

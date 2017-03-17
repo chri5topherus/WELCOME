@@ -1,9 +1,11 @@
 [Welcome] 
 nameCount=5
-font=1
-fontColor=#d41212
+font=4
+fontColor=#ffffff
 fontSize=140
-nameMode=2
+nameMode=1
+animationMode=2
+animationDuration=2
 delay=1
 
-; This is a comment
+; name count funktioniert noch nicht
