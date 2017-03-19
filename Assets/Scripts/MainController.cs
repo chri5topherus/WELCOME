@@ -35,6 +35,7 @@ public class MainController : MonoBehaviour {
 	private int nameMode;
 	private int animationMode;
 	private int animationDuration;
+	private int autoFadeOut;
 
 	//MAIN TEXT OBJECT
 	private Text mainText;
@@ -95,6 +96,7 @@ public class MainController : MonoBehaviour {
 		animationMode = Int32.Parse(ini.ReadValue ("Welcome", "animationMode", "1"));
 		animationDuration = Int32.Parse(ini.ReadValue ("Welcome", "animationDuration", "1"));
 		delay = Int32.Parse(ini.ReadValue ("Welcome", "delay", "1"));
+		autoFadeOut = Int32.Parse(ini.ReadValue ("Welcome", "autoFadeOut", "1"));
 		ini.Close ();
 
 		//----------------------------
@@ -209,6 +211,7 @@ public class MainController : MonoBehaviour {
 		newName.GetComponent<Text> ().text = getNameString (currentNameCounter);
 		StartCoroutine (IN (newName));
 		currentNameCounter++;
+
 	}
 
 
@@ -239,6 +242,18 @@ public class MainController : MonoBehaviour {
 
 		}
 
+		if (autoFadeOut == 0) {
+			for (int i = 0; i < listWithCreatedNamed.Count - 1; i++) {
+				StartCoroutine( OUT (i, 0F));
+			}
+		} else { 
+			for (int i = 0; i < listWithCreatedNamed.Count; i++) {
+				StartCoroutine( OUT (i, autoFadeOut + animationDuration));
+			}
+		}
+
+
+
 
 
 	
@@ -252,8 +267,38 @@ public class MainController : MonoBehaviour {
 
 
 
-	private IEnumerator OUT() {
-		yield return new WaitForSeconds (0F); 
+	private IEnumerator OUT(int currentNameCounter, float delayOut) {
+		yield return new WaitForSeconds (delayOut); 
+		GameObject go = listWithCreatedNamed [currentNameCounter];
+
+		float translateValue = 0F;
+
+		switch (animationMode) {
+		case 1:
+			if (go.GetComponent<RectTransform> ().localScale.x < 1F) {
+				translateValue = go.transform.localPosition.y - (fontSize /4F);
+			} else {
+				translateValue = go.transform.localPosition.y - fontSize;
+				iTween.ScaleTo (go, iTween.Hash ("" +
+					"scale", new Vector3 (0.25F, 0.25F, 0.25F),
+					"easetype", iTween.EaseType.easeOutExpo,
+					"time", animationDuration));
+			}
+				
+			iTween.MoveTo(go,iTween.Hash(
+				"position",new Vector3(0F, translateValue, 0F),
+				"easetype",iTween.EaseType.easeOutQuart,
+				"time",animationDuration));
+
+
+			break; 
+		case 2:
+			break;
+		case 3: 
+			break;
+
+		}
+
 
 	}
 

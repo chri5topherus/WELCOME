@@ -4,8 +4,9 @@ font=4
 fontColor=#ffffff
 fontSize=140
 nameMode=1
-animationMode=2
+animationMode=1
 animationDuration=2
 delay=1
+autoFadeOut=1
 
 ; name count funktioniert noch nicht
