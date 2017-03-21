@@ -44,6 +44,7 @@ public class MainController : MonoBehaviour {
 	public Text mainTextPressStart2P;
 	public Text mainTextLewis;
 
+	private Queue<GameObject> queue;
 
 
 
@@ -55,6 +56,8 @@ public class MainController : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+
+		queue = new Queue<GameObject> ();
 
 		string absolutePathOfApp = Application.dataPath;
 		string absolutePath = "";
@@ -127,6 +130,8 @@ public class MainController : MonoBehaviour {
 		//----------------------------
 		mainText.transform.localPosition = new Vector3(0F,Screen.height, 0F);
 
+
+		StartCoroutine (loopWithDelay ());
 	}
 	
 	// Update is called once per frame
@@ -205,11 +210,19 @@ public class MainController : MonoBehaviour {
 	}
 
 
+	private IEnumerator loopWithDelay() {
+		yield return new WaitForSeconds(animationDuration * animationMode);
+
+		if(queue.Count > 0) 
+			StartCoroutine (IN (queue.Dequeue ()));
+		StartCoroutine (loopWithDelay ());
+
+	}
+
 	private void generateNewName() {
 		GameObject newName = Instantiate (mainText.gameObject,textCanvas.transform);
-		listWithCreatedNamed.Add (newName);
 		newName.GetComponent<Text> ().text = getNameString (currentNameCounter);
-		StartCoroutine (IN (newName));
+		queue.Enqueue (newName);
 		currentNameCounter++;
 
 	}
@@ -217,6 +230,18 @@ public class MainController : MonoBehaviour {
 
 	private IEnumerator IN(GameObject go) {
 		yield return new WaitForSeconds (delay); 
+
+		listWithCreatedNamed.Add (go);
+
+		if (autoFadeOut == 0) {
+			for (int i = 0; i < listWithCreatedNamed.Count - 1; i++) {
+				StartCoroutine( OUT (listWithCreatedNamed [i], 0F));
+			}
+		} else { 
+			for (int i = 0; i < listWithCreatedNamed.Count; i++) {
+				StartCoroutine( OUT (listWithCreatedNamed [i], autoFadeOut + animationDuration));
+			}
+		}
 
 		switch (animationMode) {
 		case 1:
@@ -226,6 +251,7 @@ public class MainController : MonoBehaviour {
 				"time",animationDuration));
 			break; 
 		case 2:
+			yield return new WaitForSeconds (animationDuration*0.75F); 
 			go.transform.localScale = new Vector3 (0.6F, 0.6F, 0.6F);
 			iTween.ScaleTo (go, iTween.Hash ("" +
 				"scale", new Vector3 (1F, 1F, 1F),
@@ -242,34 +268,11 @@ public class MainController : MonoBehaviour {
 
 		}
 
-		if (autoFadeOut == 0) {
-			for (int i = 0; i < listWithCreatedNamed.Count - 1; i++) {
-				StartCoroutine( OUT (i, 0F));
-			}
-		} else { 
-			for (int i = 0; i < listWithCreatedNamed.Count; i++) {
-				StartCoroutine( OUT (i, autoFadeOut + animationDuration));
-			}
-		}
-
-
-
-
-
-	
-
-	}
-
-	private IEnumerator STAY() {
-		yield return new WaitForSeconds (0F); 
-
 	}
 
 
-
-	private IEnumerator OUT(int currentNameCounter, float delayOut) {
+	private IEnumerator OUT(GameObject go, float delayOut) {
 		yield return new WaitForSeconds (delayOut); 
-		GameObject go = listWithCreatedNamed [currentNameCounter];
 
 		float translateValue = 0F;
 
@@ -293,6 +296,22 @@ public class MainController : MonoBehaviour {
 
 			break; 
 		case 2:
+			
+			if (go.GetComponent<RectTransform> ().localScale.x < 1F) {
+				translateValue = go.transform.localPosition.y - (fontSize / 4F);
+			} else {
+				translateValue = go.transform.localPosition.y - fontSize;
+				go.GetComponent<Text> ().CrossFadeAlpha (0F, animationDuration, false);
+			}
+				
+			yield return new WaitForSeconds (animationDuration); 
+			go.transform.localScale = new Vector3 (0.25F, 0.25F, 0.25F);
+			iTween.MoveTo(go,iTween.Hash(
+				"position",new Vector3(0F, translateValue, 0F),
+				"easetype",iTween.EaseType.easeOutQuart,
+				"time",animationDuration));
+			go.GetComponent<Text> ().CrossFadeAlpha (1F, animationDuration, false);
+
 			break;
 		case 3: 
 			break;
@@ -302,6 +321,17 @@ public class MainController : MonoBehaviour {
 
 	}
 
+
+	private IEnumerator waitWithFade(float delayOut, GameObject go, float translateValue) {
+		yield return new WaitForSeconds (delayOut); 
+		go.transform.localScale = new Vector3 (0.25F, 0.25F, 0.25F);
+		iTween.MoveTo(go,iTween.Hash(
+			"position",new Vector3(0F, translateValue, 0F),
+			"easetype",iTween.EaseType.easeOutQuart,
+			"time",animationDuration));
+		go.GetComponent<Text> ().CrossFadeAlpha (1F, animationDuration, false);
+
+	}
 
 
 

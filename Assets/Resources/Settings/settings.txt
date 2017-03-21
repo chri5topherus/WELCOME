@@ -7,6 +7,6 @@ nameMode=1
 animationMode=1
 animationDuration=2
 delay=1
-autoFadeOut=1
+autoFadeOut=0
 
 ; name count funktioniert noch nicht
