@@ -49,7 +49,7 @@ public class MainController : MonoBehaviour {
 
 
 	//TESTING
-	private String[,] names = new String[,] { { "Chris", "Boesch" }, { "Michael", "Mair" }, { "Andrea", "Hagen" }, { "Tim", "Turbo"} };
+	private String[,] names = new String[,] { { "Chris", "Boesch" }, { "Michael", "Mair" }, { "Andrea", "Hagen" }, { "Tim", "Turbo"}, { "Alex", "Fuerst"}, { "Manfred", "Hofer"}, { "Klaus", "Igel"} };
 	private int currentNameCounter = 0;
 
 
@@ -75,7 +75,7 @@ public class MainController : MonoBehaviour {
 			#endif
 
 			#if UNITY_STANDALONE_WIN
-				absolutePath = absolutePathOfApp.Substring(0,absolutePathOfApp.Length-Application.productName.Length+3) + "settings";
+				absolutePath = absolutePathOfApp.Substring(0,absolutePathOfApp.Length-Application.productName.Length+2) + "/settings";
 				//debugTxt.text = absolutePath;
 				//absolutePathTarget = absolutePathOfApp.Substring(0,absolutePathOfApp.Length-13) + "loaded";
 				//absolutePath = ini.ReadValue("Path","win","test");
@@ -212,7 +212,6 @@ public class MainController : MonoBehaviour {
 
 	private IEnumerator loopWithDelay() {
 		yield return new WaitForSeconds(animationDuration * animationMode);
-
 		if(queue.Count > 0) 
 			StartCoroutine (IN (queue.Dequeue ()));
 		StartCoroutine (loopWithDelay ());

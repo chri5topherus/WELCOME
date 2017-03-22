@@ -1,12 +1,32 @@
 [Welcome] 
 nameCount=5
-font=4
+font=1
 fontColor=#ffffff
-fontSize=140
+fontSize=120
 nameMode=1
 animationMode=1
 animationDuration=2
 delay=1
 autoFadeOut=0
 
-; name count funktioniert noch nicht
+; font
+;	1: OpenSans Bold
+; 	2: OpenSans Light
+; 	3: PressStart2P 
+; 	4: Lewis
+
+; fontSize
+;	pt
+
+; nameMode 
+; 	1: max musterman
+; 	2: m. mustermann
+;	3: max m.
+
+; animationMode
+;	1: translate
+; 	2: fade
+
+; animationDuration
+;	seconds
+
