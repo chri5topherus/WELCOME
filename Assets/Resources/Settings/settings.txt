@@ -1,18 +1,21 @@
 [Welcome] 
-nameCount=5
-font=1
+nameCount=2
+font=2
 fontColor=#ffffff
-fontSize=120
+smokeColor=#06ff00
+fontSize=100
 nameMode=1
 animationMode=1
+animationEase=2
 animationDuration=2
-delay=1
+delay=0
 autoFadeOut=0
+smoke=1
 
 ; font
 ;	1: OpenSans Bold
 ; 	2: OpenSans Light
-; 	3: PressStart2P 
+; 	3: PressStart2P
 ; 	4: Lewis
 
 ; fontSize
@@ -24,9 +27,18 @@ autoFadeOut=0
 ;	3: max m.
 
 ; animationMode
-;	1: translate
-; 	2: fade
+;	1: translate top down 
+;	2: translate bottom up
+; 	3: fade
+
+; animationEase
+;	1: ease sin
+;	2: ease quart
+; 	3: ease bounce
 
 ; animationDuration
 ;	seconds
 
+; smoke
+; 	0 false
+;	1 true

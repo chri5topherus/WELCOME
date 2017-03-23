@@ -30,28 +30,36 @@ public class MainController : MonoBehaviour {
 	private int font;
 	private string fontColorString;
 	private Color fontColor;
+	private string smokeColorString;
+	private Color smokeColor;
 	private int fontSize;
 	private int delay;
 	private int nameMode;
 	private int animationMode;
+	private int animationEase;
 	private int animationDuration;
 	private int autoFadeOut;
+	private int smoke;
 
 	//MAIN TEXT OBJECT
 	private Text mainText;
-	public Text mainTextOpenSansBold;
-	public Text mainTextOpenSansLight;
-	public Text mainTextPressStart2P;
-	public Text mainTextLewis;
+	public Text mainTextFont01;
+	public Text mainTextFont02;
+	public Text mainTextFont03;
+	public Text mainTextFont04;
+
+	public List<Text> listWithMainTextFontElements = new List<Text>();
+
+	private iTween.EaseType ease;
 
 	private Queue<GameObject> queue;
+	private List<GameObject> allTextGameObjects = new List<GameObject> ();
+	private int deleteValue = -1;
 
-
+	public PusherReceiver pusherReceiver;
 
 	//TESTING
 	private String[,] names = new String[,] { { "Chris", "Boesch" }, { "Michael", "Mair" }, { "Andrea", "Hagen" }, { "Tim", "Turbo"}, { "Alex", "Fuerst"}, { "Manfred", "Hofer"}, { "Klaus", "Igel"} };
-	private int currentNameCounter = 0;
-
 
 
 	// Use this for initialization
@@ -92,14 +100,19 @@ public class MainController : MonoBehaviour {
 		//----------------------------
 		ini.Open(absolutePath + "/settings.txt");
 		nameCount = Int32.Parse(ini.ReadValue("Welcome","nameCount", "1"));
-		font = Int32.Parse(ini.ReadValue("Welcome","font", "1"));
+		font = (Int32.Parse (ini.ReadValue ("Welcome", "font", "1"))) - 1;
 		fontSize = Int32.Parse(ini.ReadValue ("Welcome", "fontSize", "100"));
 		fontColorString = ini.ReadValue ("Welcome", "fontColor", "1");
+		smokeColorString = ini.ReadValue ("Welcome", "smokeColor", "1");
 		nameMode = Int32.Parse(ini.ReadValue ("Welcome", "nameMode", "1"));
 		animationMode = Int32.Parse(ini.ReadValue ("Welcome", "animationMode", "1"));
 		animationDuration = Int32.Parse(ini.ReadValue ("Welcome", "animationDuration", "1"));
 		delay = Int32.Parse(ini.ReadValue ("Welcome", "delay", "1"));
 		autoFadeOut = Int32.Parse(ini.ReadValue ("Welcome", "autoFadeOut", "1"));
+		smoke = Int32.Parse (ini.ReadValue ("Welcome", "smoke", "0"));
+		animationEase = Int32.Parse (ini.ReadValue ("Welcome", "animationEase", "1"));
+
+
 		ini.Close ();
 
 		//----------------------------
@@ -117,6 +130,16 @@ public class MainController : MonoBehaviour {
 		//----------------------------
 		ColorUtility.TryParseHtmlString (fontColorString, out fontColor);
 		mainText.color = fontColor;
+	
+		ColorUtility.TryParseHtmlString (smokeColorString, out smokeColor);
+		mainText.transform.Find ("WhiteSmoke").gameObject.GetComponent<ParticleSystem> ().startColor = smokeColor;
+
+
+
+		//----------------------------
+		//----------- EASE -----------
+		//----------------------------
+		setEase ();
 
 		//----------------------------
 		//----------- SIZE -----------
@@ -128,8 +151,19 @@ public class MainController : MonoBehaviour {
 		//----------------------------
 		//------- CLEAR SCREEN -------
 		//----------------------------
-		mainText.transform.localPosition = new Vector3(0F,Screen.height, 0F);
+		//Debug.Log(animationMode);
+		switch (animationMode) {
+		case 1: 
+			mainText.transform.localPosition = new Vector3(0F,Screen.height, 0F);
+			break; 
+		case 2: 
+			mainText.transform.localPosition = new Vector3(0F,-Screen.height, 0F);
+			break; 
+		case 3: 
+			mainText.transform.localPosition = new Vector3(0F,Screen.height, 0F);
+			break;
 
+		}
 
 		StartCoroutine (loopWithDelay ());
 	}
@@ -137,38 +171,51 @@ public class MainController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		if (Input.GetKeyDown (KeyCode.Space)) { 
-			generateNewName ();
+			newPusherEvent (names [allTextGameObjects.Count,0], names[allTextGameObjects.Count,1], "", "");
+			//generateNewName ();
+		}
+
+		if (pusherReceiver.newData) { 
+			pusherReceiver.newData = false;
+			newPusherEvent (pusherReceiver.firstname, pusherReceiver.lastname, pusherReceiver.gender, pusherReceiver.email);
+		}
+
+	}
+
+	private void setEase() {
+		switch (animationEase) { 
+		case 1: 
+			ease = iTween.EaseType.easeOutSine;
+			break; 
+		case 2: 
+			ease = iTween.EaseType.easeOutQuart;
+			break; 
+		case 3: 
+			ease = iTween.EaseType.easeInOutBounce;
+			break;
 		}
 	}
 
-	private void setFont() {
-		switch (font) {
-		case 1:
-			mainText = mainTextOpenSansBold;
-			mainTextOpenSansLight.gameObject.SetActive (false);
-			mainTextPressStart2P.gameObject.SetActive (false);
-			mainTextLewis.gameObject.SetActive (false);
-			break; 
-		case 2: 
-			mainText = mainTextOpenSansLight;
-			mainTextOpenSansBold.gameObject.SetActive (false);
-			mainTextPressStart2P.gameObject.SetActive (false);
-			mainTextLewis.gameObject.SetActive (false);
-			break; 
-		case 3: 
-			mainText = mainTextPressStart2P;
-			mainTextOpenSansLight.gameObject.SetActive (false);
-			mainTextOpenSansBold.gameObject.SetActive (false);
-			mainTextLewis.gameObject.SetActive (false);
-			break; 
-		case 4: 
-			mainText = mainTextLewis;
-			mainTextOpenSansLight.gameObject.SetActive (false);
-			mainTextOpenSansBold.gameObject.SetActive (false);
-			mainTextPressStart2P.gameObject.SetActive (false);
-			break; 
 
+
+
+	private void setFont() {
+
+		foreach (Text txt in listWithMainTextFontElements) {
+			txt.gameObject.SetActive (false);
 		}
+
+		mainText = listWithMainTextFontElements[font];
+		mainText.gameObject.SetActive (true);
+
+
+
+		if (smoke == 0)
+			mainText.transform.Find ("WhiteSmoke").gameObject.SetActive (false);
+		else if (smoke == 1) 
+			mainText.transform.Find ("WhiteSmoke").gameObject.SetActive (true);
+
+		
 
 	}
 
@@ -193,17 +240,22 @@ public class MainController : MonoBehaviour {
 	}
 
 
-	private String getNameString(int currentName) { 
+	public void newPusherEvent(string firstname, string lastname, string gender, string email) {
+		generateNewName (firstname, lastname);
+
+	}
+
+	private String getNameString(string firstname, string lastname) { 
 		String createdName = "";
 		switch (nameMode) {
 		case 1:
-			createdName = names[currentName,0] + " " + names[currentName,1];
+			createdName = firstname + " " + lastname;
 			break;
 		case 2: 
-			createdName = names[currentName,0].Substring (0, 1) + ". " + names[currentName,1];
+			createdName = firstname.Substring (0, 1) + ". " + lastname;
 			break; 
 		case 3:
-			createdName = names[currentName,0] + " " + names[currentName,1].Substring (0, 1) + ".";
+			createdName = firstname + " " + lastname.Substring (0, 1) + ".";
 			break;
 		}
 		return createdName;
@@ -212,17 +264,45 @@ public class MainController : MonoBehaviour {
 
 	private IEnumerator loopWithDelay() {
 		yield return new WaitForSeconds(animationDuration * animationMode);
-		if(queue.Count > 0) 
+		if (queue.Count > 0) {
+			if (listWithCreatedNamed.Count > nameCount) { 
+				deleteValue++;
+			}
 			StartCoroutine (IN (queue.Dequeue ()));
+		}
 		StartCoroutine (loopWithDelay ());
 
 	}
 
-	private void generateNewName() {
-		GameObject newName = Instantiate (mainText.gameObject,textCanvas.transform);
-		newName.GetComponent<Text> ().text = getNameString (currentNameCounter);
-		queue.Enqueue (newName);
-		currentNameCounter++;
+	private void generateNewName(string firstname, string lastname) {
+
+		bool duplicate = false;
+
+		//check for duplicate
+		foreach (GameObject go in allTextGameObjects) {
+			if (go.GetComponent<Text> ().text == getNameString (firstname, lastname)) { 
+				duplicate = true;
+			}
+		}
+
+
+		//TODO remove this line: 
+		duplicate = false;
+
+
+		if (allTextGameObjects.Count == 0) {
+			duplicate = false;
+		}
+
+		if (!duplicate) {
+			GameObject newName = Instantiate (mainText.gameObject, textCanvas.transform);
+			newName.GetComponent<Text> ().text = getNameString (firstname, lastname);
+			queue.Enqueue (newName);
+			allTextGameObjects.Add (newName);
+
+		}
+
+
 
 	}
 
@@ -231,7 +311,7 @@ public class MainController : MonoBehaviour {
 		yield return new WaitForSeconds (delay); 
 
 		listWithCreatedNamed.Add (go);
-
+	
 		if (autoFadeOut == 0) {
 			for (int i = 0; i < listWithCreatedNamed.Count - 1; i++) {
 				StartCoroutine( OUT (listWithCreatedNamed [i], 0F));
@@ -242,14 +322,27 @@ public class MainController : MonoBehaviour {
 			}
 		}
 
+
+
+
 		switch (animationMode) {
-		case 1:
-			iTween.MoveTo(go,iTween.Hash(
-				"position",new Vector3(0F,0F,0F),
-				"easetype",iTween.EaseType.easeOutQuart,
-				"time",animationDuration));
+		case 1: case 2:
+
+			iTween.MoveTo (go, iTween.Hash (
+					"position", new Vector3 (0F, 0F, 0F),
+					"easetype", ease,
+					"time", animationDuration));
+
+			if(animationEase == 3)
+				yield return new WaitForSeconds (animationDuration*0.75F); 
+			else if(animationEase == 2) 
+				yield return new WaitForSeconds (animationDuration*0.4F); 
+			else if(animationEase == 1) 
+				yield return new WaitForSeconds (animationDuration*0.75F); 
+			stopSmoke (go);
 			break; 
-		case 2:
+
+		case 3: 
 			yield return new WaitForSeconds (animationDuration*0.75F); 
 			go.transform.localScale = new Vector3 (0.6F, 0.6F, 0.6F);
 			iTween.ScaleTo (go, iTween.Hash ("" +
@@ -260,12 +353,8 @@ public class MainController : MonoBehaviour {
 			go.transform.localPosition = new Vector3(0F,0F, 0F);
 			go.GetComponent<Text> ().CrossFadeAlpha (1F, animationDuration, false);
 			break; 
-
-
-		case 3: 
-			break;
-
 		}
+
 
 	}
 
@@ -275,29 +364,58 @@ public class MainController : MonoBehaviour {
 
 		float translateValue = 0F;
 
+
 		switch (animationMode) {
 		case 1:
 			if (go.GetComponent<RectTransform> ().localScale.x < 1F) {
-				translateValue = go.transform.localPosition.y - (fontSize /4F);
+				translateValue = go.transform.localPosition.y - (fontSize / 3F);
 			} else {
 				translateValue = go.transform.localPosition.y - fontSize;
 				iTween.ScaleTo (go, iTween.Hash ("" +
-					"scale", new Vector3 (0.25F, 0.25F, 0.25F),
+				"scale", new Vector3 (0.25F, 0.25F, 0.25F),
 					"easetype", iTween.EaseType.easeOutExpo,
 					"time", animationDuration));
 			}
 				
-			iTween.MoveTo(go,iTween.Hash(
-				"position",new Vector3(0F, translateValue, 0F),
-				"easetype",iTween.EaseType.easeOutQuart,
-				"time",animationDuration));
+			iTween.MoveTo (go, iTween.Hash (
+				"position", new Vector3 (0F, translateValue, 0F),
+				"easetype", iTween.EaseType.easeOutQuart,
+				"time", animationDuration));
 
+			//delete value
+			if (deleteValue > -1) {
+				allTextGameObjects [deleteValue].GetComponent<Text> ().CrossFadeAlpha (0F, animationDuration / 2, false);
+				StartCoroutine (deleteObjects (allTextGameObjects [deleteValue], animationDuration));
+			}
 
 			break; 
-		case 2:
+		case 2: 
+			if (go.GetComponent<RectTransform> ().localScale.x < 1F) {
+				translateValue = go.transform.localPosition.y + (fontSize / 3F);
+			} else {
+				translateValue = go.transform.localPosition.y + fontSize;
+				iTween.ScaleTo (go, iTween.Hash ("" +
+				"scale", new Vector3 (0.25F, 0.25F, 0.25F),
+					"easetype", iTween.EaseType.easeOutExpo,
+					"time", animationDuration));
+			}
+
+			iTween.MoveTo (go, iTween.Hash (
+				"position", new Vector3 (0F, translateValue, 0F),
+				"easetype", iTween.EaseType.easeOutQuart,
+				"time", animationDuration));
+
+			//delete value
+			if (deleteValue > -1) {
+				allTextGameObjects [deleteValue].GetComponent<Text> ().CrossFadeAlpha (0F, animationDuration / 2, false);
+				StartCoroutine (deleteObjects (allTextGameObjects [deleteValue], animationDuration));
+			}
+
+			break;
+		case 3:
 			
 			if (go.GetComponent<RectTransform> ().localScale.x < 1F) {
-				translateValue = go.transform.localPosition.y - (fontSize / 4F);
+				translateValue = go.transform.localPosition.y - (fontSize / 3F);
 			} else {
 				translateValue = go.transform.localPosition.y - fontSize;
 				go.GetComponent<Text> ().CrossFadeAlpha (0F, animationDuration, false);
@@ -305,33 +423,39 @@ public class MainController : MonoBehaviour {
 				
 			yield return new WaitForSeconds (animationDuration); 
 			go.transform.localScale = new Vector3 (0.25F, 0.25F, 0.25F);
-			iTween.MoveTo(go,iTween.Hash(
-				"position",new Vector3(0F, translateValue, 0F),
-				"easetype",iTween.EaseType.easeOutQuart,
-				"time",animationDuration));
+			go.transform.localPosition = new Vector3 (0F, translateValue, 0F);
+
 			go.GetComponent<Text> ().CrossFadeAlpha (1F, animationDuration, false);
 
+			//deleteValue
+			if (deleteValue > -1)
+				StartCoroutine (deleteObjects (allTextGameObjects [deleteValue], 0F));
+			
 			break;
-		case 3: 
-			break;
-
 		}
-
-
 	}
 
+	private IEnumerator deleteObjects(GameObject go, float delay) {
+		yield return new WaitForSeconds (delay); 
+		go.SetActive (false);
+	}
 
 	private IEnumerator waitWithFade(float delayOut, GameObject go, float translateValue) {
 		yield return new WaitForSeconds (delayOut); 
 		go.transform.localScale = new Vector3 (0.25F, 0.25F, 0.25F);
 		iTween.MoveTo(go,iTween.Hash(
 			"position",new Vector3(0F, translateValue, 0F),
-			"easetype",iTween.EaseType.easeOutQuart,
+			"easetype",ease,
 			"time",animationDuration));
 		go.GetComponent<Text> ().CrossFadeAlpha (1F, animationDuration, false);
-
 	}
 
+		
+	private void stopSmoke(GameObject go) {
+		ParticleSystem ps = go.transform.Find("WhiteSmoke").gameObject.GetComponent<ParticleSystem>();
+		ParticleSystem.EmissionModule em = ps.emission;
+		em.enabled = false;
+	}
 
 
 

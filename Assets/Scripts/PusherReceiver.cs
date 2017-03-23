@@ -5,6 +5,17 @@ public class PusherReceiver : MonoBehaviour {
 	// isntance of pusher client
 	PusherClient.Pusher pusherClient = null;
 	PusherClient.Channel pusherChannel = null;
+	//public GameObject mainGameController;
+	//public MainController mainController;
+	private string pusherString;
+
+	//data values
+	public string lastname; 
+	public string firstname; 
+	public string gender; 
+	public string email;
+
+	public bool newData = false;
 
 	void Start () {
 		PusherSettings.Verbose = true;
@@ -29,6 +40,22 @@ public class PusherReceiver : MonoBehaviour {
 
 	void HandleChannelEvent( string eventName, object evData ) {
 		Debug.Log ( "Received event on channel, event name: " + eventName + ", data: " + JsonHelper.Serialize(evData) );
+		newEvent (JsonHelper.Serialize (evData));
+	}
+
+	private void newEvent(string stringTMP) {
+
+		var	N = SimpleJSON.JSON.Parse (stringTMP);
+		firstname = N ["tag_owner"]["firstname"];
+		lastname = N ["tag_owner"]["lastname"]; 
+		gender = N ["tag_owner"]["gender"]; 
+		email = N ["tag_owner"] ["email"];
+
+		//send event to main game controller
+		//mainController.newPusherEvent(firstname, lastname, gender, email);
+
+		newData = true;
+
 	}
 
 	void HandleConnectionStateChanged (object sender, PusherClient.ConnectionState state) {
