@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using System.Text;
+using UnityEngine.UI;
 using System.Collections;
 
 public class PusherReceiver : MonoBehaviour {
@@ -15,9 +17,22 @@ public class PusherReceiver : MonoBehaviour {
 	public string gender; 
 	public string email;
 
+	public bool connected = false;
+
+	public string msg = "";
+
 	public bool newData = false;
 
+
 	void Start () {
+		#if UNITY_STANDALONE_WIN
+
+		#endif
+
+
+
+
+
 		PusherSettings.Verbose = true;
 		PusherSettings.AppKey = "3a375f8a13577d092e5897e6ce3a02";
 		PusherSettings.HttpAuthUrl = "http://test.flave.world:8080";
@@ -29,6 +44,9 @@ public class PusherReceiver : MonoBehaviour {
 
 	void HandleConnected (object sender) {
 		Debug.Log ( "Pusher client connected, now subscribing to private channel" );
+
+		connected = true;
+
 		pusherChannel = pusherClient.Subscribe( "core_items" );
 		pusherChannel.BindAll( HandleChannelEvent );
 	}
@@ -40,6 +58,7 @@ public class PusherReceiver : MonoBehaviour {
 
 	void HandleChannelEvent( string eventName, object evData ) {
 		Debug.Log ( "Received event on channel, event name: " + eventName + ", data: " + JsonHelper.Serialize(evData) );
+
 		newEvent (JsonHelper.Serialize (evData));
 	}
 
@@ -59,6 +78,8 @@ public class PusherReceiver : MonoBehaviour {
 	}
 
 	void HandleConnectionStateChanged (object sender, PusherClient.ConnectionState state) {
+		msg = state.ToString();
 		Debug.Log ( "Pusher connection state changed to: " + state );
 	}
+
 }

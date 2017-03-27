@@ -53,7 +53,7 @@ public class MainController : MonoBehaviour {
 	private iTween.EaseType ease;
 
 	private Queue<GameObject> queue;
-	private List<GameObject> allTextGameObjects = new List<GameObject> ();
+	public List<GameObject> allTextGameObjects = new List<GameObject> ();
 	private int deleteValue = -1;
 
 	public PusherReceiver pusherReceiver;
@@ -97,7 +97,8 @@ public class MainController : MonoBehaviour {
 
 		//----------------------------
 		//------------ INI -----------
-		//----------------------------
+		//----------------------------	
+
 		ini.Open(absolutePath + "/settings.txt");
 		nameCount = Int32.Parse(ini.ReadValue("Welcome","nameCount", "1"));
 		font = (Int32.Parse (ini.ReadValue ("Welcome", "font", "1"))) - 1;
@@ -115,24 +116,49 @@ public class MainController : MonoBehaviour {
 
 		ini.Close ();
 
+		/*
+
+		nameCount = 2;
+		font = 2;
+		fontColorString = "#ffffff";
+		smokeColorString="#06ff00";
+		fontSize=100;
+		nameMode = 1;
+		animationMode = 1;
+		animationEase = 2;
+		animationDuration = 2;
+		delay = 0;
+		autoFadeOut = 0;
+		smoke = 1;
+*/
+
+
+
 		//----------------------------
 		//--------- BACKDROP ---------
 		//----------------------------
 		setBackdrop (absolutePath);
 
+
 		//----------------------------
 		//----------- FONT -----------
 		//----------------------------
+		if(animationMode == 3 || animationEase == 3) 
+			smoke = 0;
 		setFont ();
+
 
 		//----------------------------
 		//----------- COLOR ----------
 		//----------------------------
 		ColorUtility.TryParseHtmlString (fontColorString, out fontColor);
 		mainText.color = fontColor;
-	
+
 		ColorUtility.TryParseHtmlString (smokeColorString, out smokeColor);
 		mainText.transform.Find ("WhiteSmoke").gameObject.GetComponent<ParticleSystem> ().startColor = smokeColor;
+
+
+
 
 
 
@@ -160,6 +186,7 @@ public class MainController : MonoBehaviour {
 			mainText.transform.localPosition = new Vector3(0F,-Screen.height, 0F);
 			break; 
 		case 3: 
+			smoke = 0;
 			mainText.transform.localPosition = new Vector3(0F,Screen.height, 0F);
 			break;
 
@@ -171,7 +198,8 @@ public class MainController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		if (Input.GetKeyDown (KeyCode.Space)) { 
-			newPusherEvent (names [allTextGameObjects.Count,0], names[allTextGameObjects.Count,1], "", "");
+
+			newPusherEvent (names [allTextGameObjects.Count % (names.Length/2),0], names[allTextGameObjects.Count % (names.Length/2),1], "", "");
 			//generateNewName ();
 		}
 
@@ -180,6 +208,12 @@ public class MainController : MonoBehaviour {
 			newPusherEvent (pusherReceiver.firstname, pusherReceiver.lastname, pusherReceiver.gender, pusherReceiver.email);
 		}
 
+		debugText.text = pusherReceiver.msg;
+
+	}
+
+	public void buttonInput() {
+		newPusherEvent (names [allTextGameObjects.Count % (names.Length/2),0], names[allTextGameObjects.Count % (names.Length/2),1], "", "");
 	}
 
 	private void setEase() {
@@ -208,14 +242,14 @@ public class MainController : MonoBehaviour {
 		mainText = listWithMainTextFontElements[font];
 		mainText.gameObject.SetActive (true);
 
+		listWithMainTextFontElements [1].transform.Find ("WhiteSmoke").gameObject.transform.SetParent (mainText.transform);
 
-
-		if (smoke == 0)
+		if (smoke == 0) {
 			mainText.transform.Find ("WhiteSmoke").gameObject.SetActive (false);
-		else if (smoke == 1) 
+		} else if (smoke == 1) {
 			mainText.transform.Find ("WhiteSmoke").gameObject.SetActive (true);
+		}
 
-		
 
 	}
 
@@ -423,14 +457,20 @@ public class MainController : MonoBehaviour {
 				
 			yield return new WaitForSeconds (animationDuration); 
 			go.transform.localScale = new Vector3 (0.25F, 0.25F, 0.25F);
-			go.transform.localPosition = new Vector3 (0F, translateValue, 0F);
+
+			iTween.MoveTo (go, iTween.Hash (
+				"position", new Vector3 (0F, translateValue, 0F),
+				"easetype", iTween.EaseType.easeOutQuart,
+				"time", animationDuration));
+
+			//go.transform.localPosition = new Vector3 (0F, translateValue, 0F);
 
 			go.GetComponent<Text> ().CrossFadeAlpha (1F, animationDuration, false);
 
 			//deleteValue
 			if (deleteValue > -1)
+				//allTextGameObjects [deleteValue].GetComponent<Text> ().CrossFadeAlpha (0F, animationDuration / 2, false);
 				StartCoroutine (deleteObjects (allTextGameObjects [deleteValue], 0F));
-			
 			break;
 		}
 	}
@@ -456,14 +496,6 @@ public class MainController : MonoBehaviour {
 		ParticleSystem.EmissionModule em = ps.emission;
 		em.enabled = false;
 	}
-
-
-
-
-
-
-
-
 
 
 }
