@@ -1,0 +1,44 @@
+[Welcome] 
+nameCount=6
+font=1
+fontColor=#ffffff
+smokeColor=#06ff00
+fontSize=100
+nameMode=1
+animationMode=1
+animationEase=3
+animationDuration=2
+delay=0
+autoFadeOut=0
+smoke=0
+
+; font
+;	1: OpenSans Bold
+; 	2: OpenSans Light
+; 	3: PressStart2P
+; 	4: Lewis
+
+; fontSize
+;	pt
+
+; nameMode 
+; 	1: max musterman
+; 	2: m. mustermann
+;	3: max m.
+
+; animationMode
+;	1: translate top down 
+;	2: translate bottom up
+; 	3: fade
+
+; animationEase
+;	1: ease sin
+;	2: ease quart
+; 	3: ease bounce
+
+; animationDuration
+;	seconds
+
+; smoke
+; 	0 false
+;	1 true
