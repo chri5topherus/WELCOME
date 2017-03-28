@@ -40,6 +40,7 @@ public class MainController : MonoBehaviour {
 	private int animationDuration;
 	private int autoFadeOut;
 	private int smoke;
+	private int secondColumn;
 
 	//MAIN TEXT OBJECT
 	private Text mainText;
@@ -115,6 +116,7 @@ public class MainController : MonoBehaviour {
 		autoFadeOut = Int32.Parse(ini.ReadValue ("Welcome", "autoFadeOut", "1"));
 		smoke = Int32.Parse (ini.ReadValue ("Welcome", "smoke", "0"));
 		animationEase = Int32.Parse (ini.ReadValue ("Welcome", "animationEase", "1"));
+		secondColumn = Int32.Parse (ini.ReadValue ("Welcome", "secondColumn", "0"));
 
 
 		ini.Close ();
@@ -374,6 +376,20 @@ public class MainController : MonoBehaviour {
 		if (!duplicate) {
 			GameObject newName = Instantiate (mainText.gameObject, textCanvas.transform);
 			newName.GetComponent<Text> ().text = getNameString (firstname, lastname, nameWithTitle);
+			GameObject newNameSub = Instantiate (mainText.gameObject, textCanvas.transform);
+
+			//generate second column
+			if (secondColumn == 1) { 
+				newNameSub.GetComponent<Text> ().text = "hahaha";
+				newNameSub.GetComponent<Text> ().fontSize =  (int) (fontSize * 0.5F);
+				newNameSub.transform.SetParent (newName.transform);
+				newNameSub.transform.localPosition = new Vector3 (0F, -fontSize * 0.75F, 0F);
+				foreach(Transform child in newNameSub.transform) {
+					Destroy(child.gameObject);
+				}
+			} 
+
+
 			queue.Enqueue (newName);
 			allTextGameObjects.Add (newName);
 
@@ -441,13 +457,23 @@ public class MainController : MonoBehaviour {
 
 		float translateValue = 0F;
 
+		int translateSecondRow = 0; 
+
+		if (go.GetComponent<RectTransform> ().localScale.x < 1F) { 
+
+
+		}
+		if (secondColumn == 1) { 
+			translateSecondRow = fontSize/3; 
+		}
+
 
 		switch (animationMode) {
 		case 1:
 			if (go.GetComponent<RectTransform> ().localScale.x < 1F) {
-				translateValue = go.transform.localPosition.y - (fontSize / 3F);
+				translateValue = go.transform.localPosition.y - (fontSize / 3F) - translateSecondRow;
 			} else {
-				translateValue = go.transform.localPosition.y - fontSize;
+				translateValue = go.transform.localPosition.y - fontSize - translateSecondRow;
 				iTween.ScaleTo (go, iTween.Hash ("" +
 				"scale", new Vector3 (0.25F, 0.25F, 0.25F),
 					"easetype", iTween.EaseType.easeOutExpo,
@@ -462,15 +488,19 @@ public class MainController : MonoBehaviour {
 			//delete value
 			if (deleteValue > -1) {
 				allTextGameObjects [deleteValue].GetComponent<Text> ().CrossFadeAlpha (0F, animationDuration / 2, false);
+				if (secondColumn == 1) {
+					allTextGameObjects [deleteValue].GetComponentsInChildren<Text> ()[1].CrossFadeAlpha (0F, animationDuration / 2, false);
+				}
+
 				StartCoroutine (deleteObjects (allTextGameObjects [deleteValue], animationDuration));
 			}
 
 			break; 
 		case 2: 
 			if (go.GetComponent<RectTransform> ().localScale.x < 1F) {
-				translateValue = go.transform.localPosition.y + (fontSize / 3F);
+				translateValue = go.transform.localPosition.y + (fontSize / 3F) + translateSecondRow;
 			} else {
-				translateValue = go.transform.localPosition.y + fontSize;
+				translateValue = go.transform.localPosition.y + fontSize + translateSecondRow;
 				iTween.ScaleTo (go, iTween.Hash ("" +
 				"scale", new Vector3 (0.25F, 0.25F, 0.25F),
 					"easetype", iTween.EaseType.easeOutExpo,
@@ -485,6 +515,10 @@ public class MainController : MonoBehaviour {
 			//delete value
 			if (deleteValue > -1) {
 				allTextGameObjects [deleteValue].GetComponent<Text> ().CrossFadeAlpha (0F, animationDuration / 2, false);
+				if (secondColumn == 1) {
+					allTextGameObjects [deleteValue].GetComponentsInChildren<Text> ()[1].CrossFadeAlpha (0F, animationDuration / 2, false);
+				}
+
 				StartCoroutine (deleteObjects (allTextGameObjects [deleteValue], animationDuration));
 			}
 
@@ -492,9 +526,9 @@ public class MainController : MonoBehaviour {
 		case 3:
 			
 			if (go.GetComponent<RectTransform> ().localScale.x < 1F) {
-				translateValue = go.transform.localPosition.y - (fontSize / 3F);
+				translateValue = go.transform.localPosition.y - (fontSize / 3F) - translateSecondRow;
 			} else {
-				translateValue = go.transform.localPosition.y - fontSize;
+				translateValue = go.transform.localPosition.y - fontSize - translateSecondRow;
 				go.GetComponent<Text> ().CrossFadeAlpha (0F, animationDuration, false);
 			}
 				

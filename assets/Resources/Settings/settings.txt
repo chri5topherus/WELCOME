@@ -1,16 +1,18 @@
 [Welcome] 
-nameCount=2
+nameCount=1
 font=2
 fontColor=#ffffff
 smokeColor=#06ff00
 fontSize=100
 nameMode=2
-animationMode=1
+secondColumn=1
+animationMode=2
 animationEase=3
 animationDuration=2
 delay=0
 autoFadeOut=0
 smoke=1
+
 
 ; font
 ;	1: OpenSans Bold
