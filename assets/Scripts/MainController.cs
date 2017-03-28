@@ -209,7 +209,7 @@ public class MainController : MonoBehaviour {
 	void Update () {
 		if (Input.GetKeyDown (KeyCode.Space)) { 
 
-			newPusherEvent (names [allTextGameObjects.Count % (names.Length/2),0], names[allTextGameObjects.Count % (names.Length/2),1], "", "");
+			newPusherEvent (names [allTextGameObjects.Count % (names.Length/2),0], names[allTextGameObjects.Count % (names.Length/2),1], "", "", "Dr. Andreas Hagen");
 			//generateNewName ();
 		}
 
@@ -220,7 +220,7 @@ public class MainController : MonoBehaviour {
 
 		if (pusherReceiver.newData) { 
 			pusherReceiver.newData = false;
-			newPusherEvent (pusherReceiver.firstname, pusherReceiver.lastname, pusherReceiver.gender, pusherReceiver.email);
+			newPusherEvent (pusherReceiver.firstname, pusherReceiver.lastname, pusherReceiver.gender, pusherReceiver.email, pusherReceiver.nameWithTitle);
 		}
 
 		//debugText.text = pusherReceiver.msg;
@@ -254,10 +254,6 @@ public class MainController : MonoBehaviour {
 			mouseReady = true;
 
 		}
-	}
-		
-	public void buttonInput() {
-		newPusherEvent (names [allTextGameObjects.Count % (names.Length/2),0], names[allTextGameObjects.Count % (names.Length/2),1], "", "");
 	}
 
 	private void setEase() {
@@ -318,12 +314,12 @@ public class MainController : MonoBehaviour {
 	}
 
 
-	public void newPusherEvent(string firstname, string lastname, string gender, string email) {
-		generateNewName (firstname, lastname);
+	public void newPusherEvent(string firstname, string lastname, string gender, string email, string nameWithTitle) {
+		generateNewName (firstname, lastname, nameWithTitle);
 
 	}
 
-	private String getNameString(string firstname, string lastname) { 
+	private String getNameString(string firstname, string lastname, string nameWithTitle) { 
 		String createdName = "";
 		switch (nameMode) {
 		case 1:
@@ -334,6 +330,9 @@ public class MainController : MonoBehaviour {
 			break; 
 		case 3:
 			createdName = firstname + " " + lastname.Substring (0, 1) + ".";
+			break;
+		case 4: 
+			createdName = nameWithTitle;
 			break;
 		}
 		return createdName;
@@ -352,13 +351,13 @@ public class MainController : MonoBehaviour {
 
 	}
 
-	private void generateNewName(string firstname, string lastname) {
+	private void generateNewName(string firstname, string lastname, string nameWithTitle) {
 
 		bool duplicate = false;
 
 		//check for duplicate
 		foreach (GameObject go in allTextGameObjects) {
-			if (go.GetComponent<Text> ().text == getNameString (firstname, lastname)) { 
+			if (go.GetComponent<Text> ().text == getNameString (firstname, lastname, nameWithTitle)) { 
 				duplicate = true;
 			}
 		}
@@ -374,7 +373,7 @@ public class MainController : MonoBehaviour {
 
 		if (!duplicate) {
 			GameObject newName = Instantiate (mainText.gameObject, textCanvas.transform);
-			newName.GetComponent<Text> ().text = getNameString (firstname, lastname);
+			newName.GetComponent<Text> ().text = getNameString (firstname, lastname, nameWithTitle);
 			queue.Enqueue (newName);
 			allTextGameObjects.Add (newName);
 

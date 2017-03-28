@@ -13,6 +13,7 @@ public class PusherReceiver : MonoBehaviour {
 
 	//data values
 	public string lastname; 
+	public string nameWithTitle; 
 	public string firstname; 
 	public string gender; 
 	public string email;
@@ -66,6 +67,7 @@ public class PusherReceiver : MonoBehaviour {
 		lastname = N ["tag_owner"]["lastname"]; 
 		gender = N ["tag_owner"]["gender"]; 
 		email = N ["tag_owner"] ["email"];
+		nameWithTitle = N ["tag_owner"] ["name_with_title"];
 
 		//send event to main game controller
 		//mainController.newPusherEvent(firstname, lastname, gender, email);
