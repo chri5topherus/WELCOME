@@ -17,7 +17,7 @@ public class PusherReceiver : MonoBehaviour {
 	public string gender; 
 	public string email;
 
-	public bool connected = false;
+	public bool connectedStatus = false;
 
 	public string msg = "";
 
@@ -29,10 +29,6 @@ public class PusherReceiver : MonoBehaviour {
 
 		#endif
 
-
-
-
-
 		PusherSettings.Verbose = true;
 		PusherSettings.AppKey = "3a375f8a13577d092e5897e6ce3a02";
 		PusherSettings.HttpAuthUrl = "http://test.flave.world:8080";
@@ -40,13 +36,14 @@ public class PusherReceiver : MonoBehaviour {
 		pusherClient.Connected += HandleConnected;
 		pusherClient.ConnectionStateChanged += HandleConnectionStateChanged;
 		pusherClient.Connect();
+
+		StartCoroutine (testConnection ());
+
 	}
 
 	void HandleConnected (object sender) {
 		Debug.Log ( "Pusher client connected, now subscribing to private channel" );
-
-		connected = true;
-
+	
 		pusherChannel = pusherClient.Subscribe( "core_items" );
 		pusherChannel.BindAll( HandleChannelEvent );
 	}
@@ -78,8 +75,23 @@ public class PusherReceiver : MonoBehaviour {
 	}
 
 	void HandleConnectionStateChanged (object sender, PusherClient.ConnectionState state) {
-		msg = state.ToString();
+		//msg = state.ToString();
 		Debug.Log ( "Pusher connection state changed to: " + state );
+	}
+
+
+	private IEnumerator testConnection() {
+		yield return new WaitForSeconds (5F);
+
+		WWW www = new WWW("http://google.com");
+		yield return www;
+		if (www.error != null) {
+			connectedStatus = false;
+		} else {
+			connectedStatus = true;
+		}
+
+		StartCoroutine (testConnection ());
 	}
 
 }

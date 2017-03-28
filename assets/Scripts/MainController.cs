@@ -43,10 +43,6 @@ public class MainController : MonoBehaviour {
 
 	//MAIN TEXT OBJECT
 	private Text mainText;
-	public Text mainTextFont01;
-	public Text mainTextFont02;
-	public Text mainTextFont03;
-	public Text mainTextFont04;
 
 	public List<Text> listWithMainTextFontElements = new List<Text>();
 
@@ -57,6 +53,13 @@ public class MainController : MonoBehaviour {
 	private int deleteValue = -1;
 
 	public PusherReceiver pusherReceiver;
+	public float yRotation = 0.0F;
+	private int delayCounter = 0;
+	private bool mouseReady = true;
+
+	//CONNECTED
+	public Image connectedImage;
+
 
 	//TESTING
 	private String[,] names = new String[,] { { "Chris", "Boesch" }, { "Michael", "Mair" }, { "Andrea", "Hagen" }, { "Tim", "Turbo"}, { "Alex", "Fuerst"}, { "Manfred", "Hofer"}, { "Klaus", "Igel"} };
@@ -192,7 +195,14 @@ public class MainController : MonoBehaviour {
 
 		}
 
+
+
+		//hide mouse 
+		Cursor.visible = false;
+
 		StartCoroutine (loopWithDelay ());
+		StartCoroutine (setConnected ()); 
+
 	}
 	
 	// Update is called once per frame
@@ -203,15 +213,49 @@ public class MainController : MonoBehaviour {
 			//generateNewName ();
 		}
 
+		if(Input.GetAxis("Mouse X") != 0 || Input.GetAxis("Mouse Y") != 0){
+			if(mouseReady)
+				StartCoroutine (onMouseMovement ());
+		}
+
 		if (pusherReceiver.newData) { 
 			pusherReceiver.newData = false;
 			newPusherEvent (pusherReceiver.firstname, pusherReceiver.lastname, pusherReceiver.gender, pusherReceiver.email);
 		}
 
-		debugText.text = pusherReceiver.msg;
+		//debugText.text = pusherReceiver.msg;
 
 	}
 
+	private IEnumerator setConnected() {
+		yield return new WaitForSeconds (0.15F);
+
+		//check if connected
+		if (pusherReceiver.connectedStatus) { 
+			yRotation += 45F;
+			connectedImage.transform.eulerAngles = new Vector3 (0, 0, yRotation);
+		} else {
+			
+		}
+
+		StartCoroutine (setConnected ()); 
+
+	}
+
+	private IEnumerator onMouseMovement() { 
+		if (mouseReady == true) {
+			mouseReady = false;
+			connectedImage.CrossFadeAlpha (1F, 1F, false);
+
+			Debug.Log ("MOUSE");
+
+			yield return new WaitForSeconds (4F);
+			connectedImage.CrossFadeAlpha (0F, 1F, false);
+			mouseReady = true;
+
+		}
+	}
+		
 	public void buttonInput() {
 		newPusherEvent (names [allTextGameObjects.Count % (names.Length/2),0], names[allTextGameObjects.Count % (names.Length/2),1], "", "");
 	}
