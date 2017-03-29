@@ -13,6 +13,7 @@ animationDuration=2
 delay=0
 autoFadeOut=0
 smoke=1
+url=test.flave.world:8080
 
 ; nameCount 
 ; 	number of visible names

@@ -26,13 +26,17 @@ public class PusherReceiver : MonoBehaviour {
 
 
 	void Start () {
-		#if UNITY_STANDALONE_WIN
 
-		#endif
+
+
+	}
+
+
+	public void StartPusher(string url) {
 
 		PusherSettings.Verbose = true;
 		PusherSettings.AppKey = "3a375f8a13577d092e5897e6ce3a02";
-		PusherSettings.HttpAuthUrl = "http://test.flave.world:8080";
+		PusherSettings.HttpAuthUrl = url;
 		pusherClient = new PusherClient.Pusher ();
 		pusherClient.Connected += HandleConnected;
 		pusherClient.ConnectionStateChanged += HandleConnectionStateChanged;
@@ -41,6 +45,7 @@ public class PusherReceiver : MonoBehaviour {
 		StartCoroutine (testConnection ());
 
 	}
+
 
 	void HandleConnected (object sender) {
 		Debug.Log ( "Pusher client connected, now subscribing to private channel" );

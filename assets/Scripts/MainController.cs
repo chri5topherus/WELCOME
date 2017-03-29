@@ -42,6 +42,7 @@ public class MainController : MonoBehaviour {
 	private int autoFadeOut;
 	private int smoke;
 	private int secondRow;
+	private string url;
 
 
 	//CLOUD 
@@ -126,6 +127,8 @@ public class MainController : MonoBehaviour {
 		animationEase = Int32.Parse (ini.ReadValue ("Welcome", "animationEase", "1"));
 		secondRow = Int32.Parse (ini.ReadValue ("Welcome", "secondRow", "0"));
 		creditStart = Int32.Parse (ini.ReadValue ("Welcome", "creditstart", "0"));
+		url = ini.ReadValue ("Welcome", "url", "http://test.flave.world:8080");
+
 
 		ini.Close ();
 
@@ -144,7 +147,7 @@ public class MainController : MonoBehaviour {
 		autoFadeOut = 0;
 		smoke = 1;
 */
-
+		pusherReceiver.StartPusher ("http://" + url);
 
 
 		//----------------------------
