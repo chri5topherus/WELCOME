@@ -22,12 +22,15 @@ public class MainController : MonoBehaviour {
 
 	//TEXT CANVAS
 	public Canvas textCanvas;
-	public List<GameObject> listWithCreatedNamed = new List<GameObject> ();
 	private Rect screenSizeRect;
+	private Queue<GameObject> queue;
+	public List<GameObject> listWithCreatedNamed = new List<GameObject> ();
+	public List<Text> listWithMainTextFontElements = new List<Text>();
+	public List<GameObject> allTextGameObjects = new List<GameObject> ();
 
 	//SETTINGS
 	private int nameCount;
-	private int creditStart;
+	private int nameStartIndex;
 	private int font;
 	private string fontColorString;
 	private Color fontColor;
@@ -43,7 +46,7 @@ public class MainController : MonoBehaviour {
 	private int smoke;
 	private int secondRow;
 	private string url;
-
+	private string channel;
 
 	//CLOUD 
 	private List<Vector2> listWithPositionValues = new List<Vector2>();
@@ -53,23 +56,18 @@ public class MainController : MonoBehaviour {
 	//MAIN TEXT OBJECT
 	private Text mainText;
 
-	public List<Text> listWithMainTextFontElements = new List<Text>();
-
+	//EASE
 	private iTween.EaseType ease;
 
-	private Queue<GameObject> queue;
-	public List<GameObject> allTextGameObjects = new List<GameObject> ();
-	private int deleteValue = -1;
-
+	//CONNECTION
 	public PusherReceiver pusherReceiver;
-	public float yRotation = 0.0F;
-	private int delayCounter = 0;
-	private bool mouseReady = true;
-	private float animationDelay;
-
-	//CONNECTED
 	public Image connectedImage;
+	private int deleteValue = -1;
+	private bool mouseReady = true;
+	public float yRotation = 0.0F;
 
+
+	private float animationDelay;
 
 	//TESTING
 	private String[,] names = new String[,] { { "Chris", "Boesch" }, { "Michael", "Mair" }, { "Andrea", "Hagen" }, { "Tim", "Turbo"}, { "Alex", "Fuerst"}, { "Manfred", "Hofer"}, { "Klaus", "Igel"} };
@@ -113,6 +111,7 @@ public class MainController : MonoBehaviour {
 		//----------------------------	
 
 		ini.Open(absolutePath + "/settings.txt");
+
 		nameCount = Int32.Parse(ini.ReadValue("Welcome","nameCount", "1"));
 		font = (Int32.Parse (ini.ReadValue ("Welcome", "font", "1"))) - 1;
 		fontSize = Int32.Parse(ini.ReadValue ("Welcome", "fontSize", "100"));
@@ -122,13 +121,13 @@ public class MainController : MonoBehaviour {
 		animationMode = Int32.Parse(ini.ReadValue ("Welcome", "animationMode", "1"));
 		animationDuration = Int32.Parse(ini.ReadValue ("Welcome", "animationDuration", "1"));
 		delay = Int32.Parse(ini.ReadValue ("Welcome", "delay", "1"));
-		autoFadeOut = Int32.Parse(ini.ReadValue ("Welcome", "autoFadeOut", "1"));
+		//autoFadeOut = Int32.Parse(ini.ReadValue ("Welcome", "autoFadeOut", "1"));
 		smoke = Int32.Parse (ini.ReadValue ("Welcome", "smoke", "0"));
 		animationEase = Int32.Parse (ini.ReadValue ("Welcome", "animationEase", "1"));
 		secondRow = Int32.Parse (ini.ReadValue ("Welcome", "secondRow", "0"));
-		creditStart = Int32.Parse (ini.ReadValue ("Welcome", "creditstart", "0"));
+		nameStartIndex = Int32.Parse (ini.ReadValue ("Welcome", "nameStartIndex", "0"));
 		url = ini.ReadValue ("Welcome", "url", "http://test.flave.world:8080");
-
+		channel = ini.ReadValue ("Welcome", "channel", "core_items");
 
 		ini.Close ();
 
@@ -147,7 +146,12 @@ public class MainController : MonoBehaviour {
 		autoFadeOut = 0;
 		smoke = 1;
 */
-		pusherReceiver.StartPusher ("http://" + url);
+
+
+		//----------------------------
+		//---------- PUSHER ----------
+		//----------------------------
+		pusherReceiver.StartPusher ("http://" + url, channel);
 
 
 		//----------------------------
@@ -169,7 +173,6 @@ public class MainController : MonoBehaviour {
 		//----------------------------
 		ColorUtility.TryParseHtmlString (fontColorString, out fontColor);
 		mainText.color = fontColor;
-
 		ColorUtility.TryParseHtmlString (smokeColorString, out smokeColor);
 		mainText.transform.Find ("WhiteSmoke").gameObject.GetComponent<ParticleSystem> ().startColor = smokeColor;
 
@@ -180,12 +183,11 @@ public class MainController : MonoBehaviour {
 		generateCloudArray ();
 
 
-
-
 		//----------------------------
 		//----------- EASE -----------
 		//----------------------------
 		setEase ();
+
 
 		//----------------------------
 		//----------- SIZE -----------
@@ -193,6 +195,7 @@ public class MainController : MonoBehaviour {
 		mainText.fontSize = fontSize;
 		RectTransform rectTransform = mainText.GetComponent (typeof (RectTransform)) as RectTransform;
 		rectTransform.sizeDelta = new Vector2 (Screen.width, Screen.height);
+
 
 		//----------------------------
 		//------- CLEAR SCREEN -------
@@ -232,15 +235,15 @@ public class MainController : MonoBehaviour {
 			break; 
 		}
 
-
-
-
-
-
-
-		//hide mouse 
+		//----------------------------
+		//---------- MOUSE -----------
+		//----------------------------
 		Cursor.visible = false;
 
+
+		//----------------------------
+		//------ START ROUTINE -------
+		//----------------------------
 		StartCoroutine (loopWithDelay ());
 		StartCoroutine (setConnected ()); 
 
@@ -249,9 +252,11 @@ public class MainController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		if (Input.GetKeyDown (KeyCode.Space)) { 
-
 			newPusherEvent (names [allTextGameObjects.Count % (names.Length/2),0], names[allTextGameObjects.Count % (names.Length/2),1], "", "", "Dr. Andreas Hagen");
-			//generateNewName ();
+		}
+
+		if (Input.GetKeyDown (KeyCode.Q)) { 
+			Application.Quit ();
 		}
 
 		if(Input.GetAxis("Mouse X") != 0 || Input.GetAxis("Mouse Y") != 0){
@@ -268,8 +273,13 @@ public class MainController : MonoBehaviour {
 
 	}
 
-	private void generateCloudArray() {
+	public void newPusherEvent(string firstname, string lastname, string gender, string email, string nameWithTitle) {
 
+		generateNewName (firstname, lastname, nameWithTitle);
+
+	}
+
+	private void generateCloudArray() {
 		for (int i = -2; i < 3; i++) {
 			for (int j = -2; j < 3; j++) {
 				listWithPositionValues.Add(new Vector2 
@@ -277,7 +287,6 @@ public class MainController : MonoBehaviour {
 					0 + j*Screen.height/5F +UnityEngine.Random.Range(-Screen.width/30,Screen.width/30)));
 			} 
 		}
-
 		randomize (listWithPositionValues);
 	}
 
@@ -291,24 +300,20 @@ public class MainController : MonoBehaviour {
 		} else {
 			
 		}
-
 		StartCoroutine (setConnected ()); 
-
 	}
+
 
 	private IEnumerator onMouseMovement() { 
 		if (mouseReady == true) {
 			mouseReady = false;
 			connectedImage.CrossFadeAlpha (1F, 1F, false);
-
-			//Debug.Log ("MOUSE");
-
 			yield return new WaitForSeconds (4F);
 			connectedImage.CrossFadeAlpha (0F, 1F, false);
 			mouseReady = true;
-
 		}
 	}
+
 
 	private void setEase() {
 		switch (animationEase) { 
@@ -325,10 +330,7 @@ public class MainController : MonoBehaviour {
 	}
 
 
-
-
 	private void setFont() {
-
 		foreach (Text txt in listWithMainTextFontElements) {
 			txt.gameObject.SetActive (false);
 		}
@@ -343,9 +345,8 @@ public class MainController : MonoBehaviour {
 		} else if (smoke == 1) {
 			mainText.transform.Find ("WhiteSmoke").gameObject.SetActive (true);
 		}
-
-
 	}
+
 
 	private void setBackdrop(string absolutePath) { 
 		DirectoryInfo info = new DirectoryInfo (absolutePath);
@@ -367,12 +368,6 @@ public class MainController : MonoBehaviour {
 		return false;
 	}
 
-
-	public void newPusherEvent(string firstname, string lastname, string gender, string email, string nameWithTitle) {
-		
-		generateNewName (firstname, lastname, nameWithTitle);
-
-	}
 
 	private String getNameString(string firstname, string lastname, string nameWithTitle) { 
 		String createdName = "";
@@ -422,7 +417,6 @@ public class MainController : MonoBehaviour {
 		//TODO remove this line if duplicate elemtes should be ignored
 		duplicate = false;
 
-
 		if (allTextGameObjects.Count == 0) {
 			duplicate = false;
 		}
@@ -445,7 +439,7 @@ public class MainController : MonoBehaviour {
 
 			allTextGameObjects.Add (newName);
 
-			if(allTextGameObjects.Count > creditStart)
+			if(allTextGameObjects.Count > nameStartIndex)
 				queue.Enqueue (newName);
 		}
 			
@@ -458,24 +452,20 @@ public class MainController : MonoBehaviour {
 
 		listWithCreatedNamed.Add (go);
 
-
 		int translateSecondRow = 0; 
 		if (secondRow == 1) { 
 			translateSecondRow = fontSize/3; 
 		}
 	
-		if (autoFadeOut == 0) {
+		//if (autoFadeOut == 0) {
 			for (int i = 0; i < listWithCreatedNamed.Count - 1; i++) {
 				StartCoroutine( OUT (listWithCreatedNamed [i], 0F));
 			}
-		} else { 
-			for (int i = 0; i < listWithCreatedNamed.Count; i++) {
-				StartCoroutine( OUT (listWithCreatedNamed [i], autoFadeOut + animationDuration));
-			}
-		}
-
-
-
+		//} else { 
+		//	for (int i = 0; i < listWithCreatedNamed.Count; i++) {
+		//		StartCoroutine( OUT (listWithCreatedNamed [i], autoFadeOut + animationDuration));
+		//	}
+		//}
 
 		switch (animationMode) {
 		case 1: case 2:
@@ -502,8 +492,14 @@ public class MainController : MonoBehaviour {
 				"easetype", iTween.EaseType.easeInOutExpo,
 				"time", animationDuration));
 			go.GetComponent<Text> ().CrossFadeAlpha (0F, 0F, false);
+			if (secondRow == 1) {
+				go.GetComponentsInChildren<Text> ()[1].CrossFadeAlpha (0F, 0F, false);
+			}
 			go.transform.localPosition = new Vector3(0F,0F, 0F);
 			go.GetComponent<Text> ().CrossFadeAlpha (1F, animationDuration, false);
+			if (secondRow == 1) {
+				go.GetComponentsInChildren<Text> ()[1].CrossFadeAlpha (1F, animationDuration, false);
+			}
 			break; 
 
 		//credit style
@@ -575,17 +571,17 @@ public class MainController : MonoBehaviour {
 				
 			iTween.MoveTo (go, iTween.Hash (
 				"position", new Vector3 (0F, translateValue, 0F),
-				"easetype", iTween.EaseType.easeOutQuart,
+				"easetype", iTween.EaseType.easeInOutQuad,
 				"time", animationDuration));
 
 			//delete value
 			if (deleteValue > -1) {
-				allTextGameObjects [deleteValue].GetComponent<Text> ().CrossFadeAlpha (0F, animationDuration / 2, false);
+				allTextGameObjects [deleteValue+nameStartIndex].GetComponent<Text> ().CrossFadeAlpha (0F, animationDuration / 2, false);
 				if (secondRow == 1) {
-					allTextGameObjects [deleteValue].GetComponentsInChildren<Text> ()[1].CrossFadeAlpha (0F, animationDuration / 2, false);
+					allTextGameObjects [deleteValue+nameStartIndex].GetComponentsInChildren<Text> ()[1].CrossFadeAlpha (0F, animationDuration / 2, false);
 				}
 
-				StartCoroutine (deleteObjects (allTextGameObjects [deleteValue], animationDuration));
+				StartCoroutine (deleteObjects (allTextGameObjects [deleteValue+nameStartIndex], animationDuration));
 			}
 
 			break; 
@@ -602,20 +598,21 @@ public class MainController : MonoBehaviour {
 
 			iTween.MoveTo (go, iTween.Hash (
 				"position", new Vector3 (0F, translateValue, 0F),
-				"easetype", iTween.EaseType.easeOutQuart,
+				"easetype", iTween.EaseType.easeInOutQuad,
 				"time", animationDuration));
 
 			//delete value
 			if (deleteValue > -1) {
-				allTextGameObjects [deleteValue].GetComponent<Text> ().CrossFadeAlpha (0F, animationDuration / 2, false);
+				allTextGameObjects [deleteValue+nameStartIndex].GetComponent<Text> ().CrossFadeAlpha (0F, animationDuration / 2, false);
 				if (secondRow == 1) {
-					allTextGameObjects [deleteValue].GetComponentsInChildren<Text> ()[1].CrossFadeAlpha (0F, animationDuration / 2, false);
+					allTextGameObjects [deleteValue+nameStartIndex].GetComponentsInChildren<Text> ()[1].CrossFadeAlpha (0F, animationDuration / 2, false);
 				}
 
-				StartCoroutine (deleteObjects (allTextGameObjects [deleteValue], animationDuration));
+				StartCoroutine (deleteObjects (allTextGameObjects [deleteValue+nameStartIndex], animationDuration));
 			}
 
 			break;
+		//FADE
 		case 3:
 			
 			if (go.GetComponent<RectTransform> ().localScale.x < 1F) {
@@ -623,6 +620,9 @@ public class MainController : MonoBehaviour {
 			} else {
 				translateValue = go.transform.localPosition.y - fontSize - translateSecondRow;
 				go.GetComponent<Text> ().CrossFadeAlpha (0F, animationDuration, false);
+				if (secondRow == 1) {
+					go.GetComponentsInChildren<Text> ()[1].CrossFadeAlpha (0F, animationDuration, false);
+				}
 			}
 				
 			yield return new WaitForSeconds (animationDuration); 
@@ -635,12 +635,23 @@ public class MainController : MonoBehaviour {
 
 			//go.transform.localPosition = new Vector3 (0F, translateValue, 0F);
 
+			yield return new WaitForSeconds (animationDuration);
 			go.GetComponent<Text> ().CrossFadeAlpha (1F, animationDuration, false);
 
+			if (secondRow == 1) {
+				go.GetComponentsInChildren<Text> ()[1].CrossFadeAlpha (1F, animationDuration, false);
+			}
+
 			//deleteValue
-			if (deleteValue > -1)
-				//allTextGameObjects [deleteValue].GetComponent<Text> ().CrossFadeAlpha (0F, animationDuration / 2, false);
-				StartCoroutine (deleteObjects (allTextGameObjects [deleteValue], 0F));
+			if (deleteValue > -1) {
+				allTextGameObjects [deleteValue+nameStartIndex].GetComponent<Text> ().CrossFadeAlpha (0F, animationDuration / 2, false);
+				if (secondRow == 1) {
+					allTextGameObjects [deleteValue+nameStartIndex].GetComponentsInChildren<Text> ()[1].CrossFadeAlpha (0F, animationDuration / 2, false);
+				}
+
+				StartCoroutine (deleteObjects (allTextGameObjects [deleteValue+nameStartIndex], animationDuration));
+			}
+
 			break;
 
 
@@ -656,12 +667,12 @@ public class MainController : MonoBehaviour {
 
 			//delete value
 			if (deleteValue > -1) {
-				allTextGameObjects [deleteValue+creditStart].GetComponent<Text> ().CrossFadeAlpha (0F, animationDuration / 2, false);
+				allTextGameObjects [deleteValue+nameStartIndex].GetComponent<Text> ().CrossFadeAlpha (0F, animationDuration / 2, false);
 				if (secondRow == 1) {
-					allTextGameObjects [deleteValue+creditStart].GetComponentsInChildren<Text> ()[1].CrossFadeAlpha (0F, animationDuration / 2, false);
+					allTextGameObjects [deleteValue+nameStartIndex].GetComponentsInChildren<Text> ()[1].CrossFadeAlpha (0F, animationDuration / 2, false);
 				}
 
-				StartCoroutine (deleteObjects (allTextGameObjects [deleteValue+creditStart], animationDuration));
+				StartCoroutine (deleteObjects (allTextGameObjects [deleteValue+nameStartIndex], animationDuration));
 			}
 
 			break; 
@@ -670,16 +681,16 @@ public class MainController : MonoBehaviour {
 
 
 			if (deleteValue > -1) {
-				iTween.ScaleTo (allTextGameObjects [deleteValue+creditStart].gameObject, iTween.Hash ("" +
+				iTween.ScaleTo (allTextGameObjects [deleteValue+nameStartIndex].gameObject, iTween.Hash ("" +
 					"scale", new Vector3 (0.6F, 0.6F, 0.6F),
 					"easetype", iTween.EaseType.easeInOutQuad,
 					"time", animationDuration));
-				allTextGameObjects [deleteValue+creditStart].GetComponent<Text> ().CrossFadeAlpha (0F, animationDuration * 0.75F, false);
+				allTextGameObjects [deleteValue+nameStartIndex].GetComponent<Text> ().CrossFadeAlpha (0F, animationDuration * 0.75F, false);
 				if (secondRow == 1) {
-					allTextGameObjects [deleteValue+creditStart].GetComponentsInChildren<Text> ()[1].CrossFadeAlpha (0F, animationDuration / 2, false);
+					allTextGameObjects [deleteValue+nameStartIndex].GetComponentsInChildren<Text> ()[1].CrossFadeAlpha (0F, animationDuration / 2, false);
 				}
 
-				StartCoroutine (deleteObjects (allTextGameObjects [deleteValue+creditStart], animationDuration));
+				StartCoroutine (deleteObjects (allTextGameObjects [deleteValue+nameStartIndex], animationDuration));
 			}
 
 
@@ -688,6 +699,12 @@ public class MainController : MonoBehaviour {
 			break;
 
 		}
+
+
+		//delete 
+
+
+
 	}
 
 	private IEnumerator deleteObjects(GameObject go, float delay) {

@@ -23,16 +23,16 @@ public class PusherReceiver : MonoBehaviour {
 	public string msg = "";
 
 	public bool newData = false;
-
+	private string channel;
 
 	void Start () {
-
-
 
 	}
 
 
-	public void StartPusher(string url) {
+	public void StartPusher(string url, string channel) {
+
+		this.channel = channel;
 
 		PusherSettings.Verbose = true;
 		PusherSettings.AppKey = "3a375f8a13577d092e5897e6ce3a02";
@@ -48,9 +48,8 @@ public class PusherReceiver : MonoBehaviour {
 
 
 	void HandleConnected (object sender) {
-		Debug.Log ( "Pusher client connected, now subscribing to private channel" );
-	
-		pusherChannel = pusherClient.Subscribe( "core_items" );
+		Debug.Log ( "Pusher client connected, now subscribing to private channel" );	
+		pusherChannel = pusherClient.Subscribe( channel );
 		pusherChannel.BindAll( HandleChannelEvent );
 	}
 
@@ -61,7 +60,6 @@ public class PusherReceiver : MonoBehaviour {
 
 	void HandleChannelEvent( string eventName, object evData ) {
 		Debug.Log ( "Received event on channel, event name: " + eventName + ", data: " + JsonHelper.Serialize(evData) );
-
 		newEvent (JsonHelper.Serialize (evData));
 	}
 
@@ -89,7 +87,6 @@ public class PusherReceiver : MonoBehaviour {
 
 	private IEnumerator testConnection() {
 		yield return new WaitForSeconds (5F);
-
 		WWW www = new WWW("http://google.com");
 		yield return www;
 		if (www.error != null) {
@@ -97,7 +94,6 @@ public class PusherReceiver : MonoBehaviour {
 		} else {
 			connectedStatus = true;
 		}
-
 		StartCoroutine (testConnection ());
 	}
 

@@ -1,19 +1,22 @@
 [Welcome] 
-nameCount=8
-creditstart=1
+nameCount=1
+nameStartIndex=2
 font=2
 fontColor=#ffffff
 smokeColor=#06ff00
-fontSize=50
-nameMode=2
+fontSize=100
 secondRow=0
-animationMode=5
-animationEase=3
+nameMode=3
+animationMode=2
+animationEase=2
 animationDuration=2
 delay=0
 autoFadeOut=0
-smoke=1
+smoke=0
 url=test.flave.world:8080
+channel=core_items
+
+
 
 ; nameCount 
 ; 	number of visible names
@@ -45,7 +48,7 @@ url=test.flave.world:8080
 ;	2: translate bottom up
 ; 	3: fade
 ; 	4: credit style
-; 	5: cloud (nameCount must be smaller than 25)
+; 	5: cloud (nameCount smaller than 25)
 
 ; animationEase
 ;	1: ease sin
