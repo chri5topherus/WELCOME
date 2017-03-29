@@ -1,18 +1,25 @@
 [Welcome] 
-nameCount=1
+nameCount=8
+creditstart=1
 font=2
 fontColor=#ffffff
 smokeColor=#06ff00
-fontSize=100
+fontSize=50
 nameMode=2
-secondColumn=1
-animationMode=2
+secondRow=0
+animationMode=5
 animationEase=3
 animationDuration=2
 delay=0
 autoFadeOut=0
 smoke=1
 
+; nameCount 
+; 	number of visible names
+
+; creditstart
+;	0: start with the first one 
+; 	3: start with the fourth
 
 ; font
 ;	1: OpenSans Bold
@@ -28,10 +35,16 @@ smoke=1
 ; 	2: m. mustermann
 ;	3: max m.
 
+; secondRow
+;	0: no second row
+;	1: second row
+
 ; animationMode
 ;	1: translate top down 
 ;	2: translate bottom up
 ; 	3: fade
+; 	4: credit style
+; 	5: cloud (nameCount must be smaller than 25)
 
 ; animationEase
 ;	1: ease sin
