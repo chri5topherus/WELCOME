@@ -7,9 +7,10 @@ smokeColor=#06ff00
 fontSize=100
 secondRow=0
 nameMode=3
-animationMode=2
+animationMode=6
 animationEase=2
-animationDuration=2
+animationDuration=20
+animationStarWarsDelay=2
 delay=0
 autoFadeOut=0
 smoke=0
@@ -49,6 +50,7 @@ channel=core_items
 ; 	3: fade
 ; 	4: credit style
 ; 	5: cloud (nameCount smaller than 25)
+;	6: star wars
 
 ; animationEase
 ;	1: ease sin

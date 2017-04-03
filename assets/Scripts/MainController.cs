@@ -22,10 +22,12 @@ public class MainController : MonoBehaviour {
 
 	//TEXT CANVAS
 	public Canvas textCanvas;
+	public Canvas textCanvasStarWars;
 	private Rect screenSizeRect;
 	private Queue<GameObject> queue;
 	public List<GameObject> listWithCreatedNamed = new List<GameObject> ();
 	public List<Text> listWithMainTextFontElements = new List<Text>();
+	public List<Text> listWithMainTextFontElementsStarWars = new List<Text>();
 	public List<GameObject> allTextGameObjects = new List<GameObject> ();
 
 	//SETTINGS
@@ -65,6 +67,7 @@ public class MainController : MonoBehaviour {
 	private int deleteValue = -1;
 	private bool mouseReady = true;
 	public float yRotation = 0.0F;
+	private float starWarsValue = 1;
 
 
 	private float animationDelay;
@@ -110,6 +113,7 @@ public class MainController : MonoBehaviour {
 		//------------ INI -----------
 		//----------------------------	
 
+
 		ini.Open(absolutePath + "/settings.txt");
 
 		nameCount = Int32.Parse(ini.ReadValue("Welcome","nameCount", "1"));
@@ -119,6 +123,7 @@ public class MainController : MonoBehaviour {
 		smokeColorString = ini.ReadValue ("Welcome", "smokeColor", "1");
 		nameMode = Int32.Parse(ini.ReadValue ("Welcome", "nameMode", "1"));
 		animationMode = Int32.Parse(ini.ReadValue ("Welcome", "animationMode", "1"));
+		starWarsValue = Int32.Parse(ini.ReadValue ("Welcome", "animationStarWarsDelay", "1"));
 		animationDuration = Int32.Parse(ini.ReadValue ("Welcome", "animationDuration", "1"));
 		delay = Int32.Parse(ini.ReadValue ("Welcome", "delay", "1"));
 		//autoFadeOut = Int32.Parse(ini.ReadValue ("Welcome", "autoFadeOut", "1"));
@@ -132,6 +137,7 @@ public class MainController : MonoBehaviour {
 		ini.Close ();
 
 		/*
+
 
 		nameCount = 2;
 		font = 2;
@@ -174,7 +180,8 @@ public class MainController : MonoBehaviour {
 		ColorUtility.TryParseHtmlString (fontColorString, out fontColor);
 		mainText.color = fontColor;
 		ColorUtility.TryParseHtmlString (smokeColorString, out smokeColor);
-		mainText.transform.Find ("WhiteSmoke").gameObject.GetComponent<ParticleSystem> ().startColor = smokeColor;
+		if(animationMode != 6)
+			mainText.transform.Find ("WhiteSmoke").gameObject.GetComponent<ParticleSystem> ().startColor = smokeColor;
 
 
 		//----------------------------
@@ -233,6 +240,14 @@ public class MainController : MonoBehaviour {
 				nameCount = 0;
 			mainText.transform.localPosition = new Vector3(0F,Screen.height, 0F);
 			break; 
+		
+		case 6: 
+			nameCount = nameCount - 1;
+			animationDelay = starWarsValue;
+			animationDuration = animationDuration * 2;
+			mainText.transform.localPosition = new Vector3 (0F, -Screen.height, 0F);
+			break; 
+		
 		}
 
 		//----------------------------
@@ -245,7 +260,7 @@ public class MainController : MonoBehaviour {
 		//------ START ROUTINE -------
 		//----------------------------
 		StartCoroutine (loopWithDelay ());
-		StartCoroutine (setConnected ()); 
+		//StartCoroutine (setConnected ()); 
 
 	}
 	
@@ -263,12 +278,12 @@ public class MainController : MonoBehaviour {
 			if(mouseReady)
 				StartCoroutine (onMouseMovement ());
 		}
-
+		/*
 		if (pusherReceiver.newData) { 
 			pusherReceiver.newData = false;
 			newPusherEvent (pusherReceiver.firstname, pusherReceiver.lastname, pusherReceiver.gender, pusherReceiver.email, pusherReceiver.nameWithTitle);
 		}
-
+		*/
 		//debugText.text = pusherReceiver.msg;
 
 	}
@@ -331,19 +346,32 @@ public class MainController : MonoBehaviour {
 
 
 	private void setFont() {
+
+		foreach (Text txt in listWithMainTextFontElementsStarWars) {
+			txt.gameObject.SetActive (false);
+		}
+
 		foreach (Text txt in listWithMainTextFontElements) {
 			txt.gameObject.SetActive (false);
 		}
 
-		mainText = listWithMainTextFontElements[font];
-		mainText.gameObject.SetActive (true);
+		if (animationMode == 6) { 
 
-		listWithMainTextFontElements [1].transform.Find ("WhiteSmoke").gameObject.transform.SetParent (mainText.transform);
+			mainText = listWithMainTextFontElementsStarWars [font];
+			mainText.gameObject.SetActive (true);
 
-		if (smoke == 0) {
-			mainText.transform.Find ("WhiteSmoke").gameObject.SetActive (false);
-		} else if (smoke == 1) {
-			mainText.transform.Find ("WhiteSmoke").gameObject.SetActive (true);
+		} else { 
+
+			mainText = listWithMainTextFontElements [font];
+			mainText.gameObject.SetActive (true);
+
+			listWithMainTextFontElements [1].transform.Find ("WhiteSmoke").gameObject.transform.SetParent (mainText.transform);
+
+			if (smoke == 0) {
+				mainText.transform.Find ("WhiteSmoke").gameObject.SetActive (false);
+			} else if (smoke == 1) {
+				mainText.transform.Find ("WhiteSmoke").gameObject.SetActive (true);
+			}
 		}
 	}
 
@@ -391,6 +419,7 @@ public class MainController : MonoBehaviour {
 
 	private IEnumerator loopWithDelay() {
 		yield return new WaitForSeconds(animationDelay);
+		Debug.Log (animationDelay);
 
 		if (queue.Count > 0) {
 			if (listWithCreatedNamed.Count > nameCount) { 
@@ -422,12 +451,20 @@ public class MainController : MonoBehaviour {
 		}
 
 		if (!duplicate) {
-			GameObject newName = Instantiate (mainText.gameObject, textCanvas.transform);
+			GameObject newName;
+			if(animationMode != 6)
+				newName = Instantiate (mainText.gameObject, textCanvas.transform);
+			else 
+				newName = Instantiate (mainText.gameObject, textCanvasStarWars.transform);
 			newName.GetComponent<Text> ().text = getNameString (firstname, lastname, nameWithTitle);
 
 			//generate second row
 			if (secondRow == 1) {
-				GameObject newNameSub = Instantiate (mainText.gameObject, textCanvas.transform);
+				GameObject newNameSub;
+				if(animationMode != 6)
+					newNameSub = Instantiate (mainText.gameObject, textCanvas.transform);
+				else 
+					newNameSub = Instantiate (mainText.gameObject, textCanvasStarWars.transform);
 				newNameSub.GetComponent<Text> ().text = "hahaha";
 				newNameSub.GetComponent<Text> ().fontSize =  (int) (fontSize * 0.5F);
 				newNameSub.transform.SetParent (newName.transform);
@@ -458,9 +495,11 @@ public class MainController : MonoBehaviour {
 		}
 	
 		//if (autoFadeOut == 0) {
+		if (animationMode != 6) {
 			for (int i = 0; i < listWithCreatedNamed.Count - 1; i++) {
-				StartCoroutine( OUT (listWithCreatedNamed [i], 0F));
+				StartCoroutine (OUT (listWithCreatedNamed [i], 0F));
 			}
+		}
 		//} else { 
 		//	for (int i = 0; i < listWithCreatedNamed.Count; i++) {
 		//		StartCoroutine( OUT (listWithCreatedNamed [i], autoFadeOut + animationDuration));
@@ -534,6 +573,19 @@ public class MainController : MonoBehaviour {
 			if (currentCloudCounter > 24)
 				currentCloudCounter = 0;
 			break;
+
+		//star wars
+		case 6: 
+			Debug.Log ("StarT");
+			iTween.MoveTo (go, iTween.Hash (
+				"position", new Vector3 (0F, Screen.height*2F, 0F),
+				"easetype", iTween.EaseType.linear,
+				"time", animationDuration));
+
+			yield return new WaitForSeconds (animationDuration); 
+			go.SetActive (false);
+			break; 
+
 		}
 
 
