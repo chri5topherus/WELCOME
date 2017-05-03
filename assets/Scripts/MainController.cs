@@ -260,7 +260,7 @@ public class MainController : MonoBehaviour {
 		//------ START ROUTINE -------
 		//----------------------------
 		StartCoroutine (loopWithDelay ());
-		//StartCoroutine (setConnected ()); 
+		StartCoroutine (setConnected ()); 
 
 	}
 	
@@ -419,7 +419,7 @@ public class MainController : MonoBehaviour {
 
 	private IEnumerator loopWithDelay() {
 		yield return new WaitForSeconds(animationDelay);
-		Debug.Log (animationDelay);
+		//Debug.Log (animationDelay);
 
 		if (queue.Count > 0) {
 			if (listWithCreatedNamed.Count > nameCount) { 
